@@ -1,6 +1,10 @@
 import { useState, createContext, useContext, useEffect } from 'react';
 import Tooltip from './Tooltip';
+import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip as ChartTooltip } from 'chart.js';
+import { Line } from 'react-chartjs-2';
 import formatCurrency from './formatCurrency';
+
+Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip);
 
 const CompoundingContext = createContext();
 
@@ -67,9 +71,65 @@ function Form() {
   );
 }
 
-function Chart() {
+function LineChart() {
+  const compounding = useContext(CompoundingContext)[0];
+
   return (
-    <canvas id="myChart"></canvas>
+    <Line
+      data={{
+        labels: compounding.chartLabels,
+        datasets: [
+          {
+            data: compounding.chartData,
+            borderWidth: 4,
+            borderColor: "#99bc20",
+            backgroundColor: "#99bc20",
+            fill: false
+          }
+        ]
+      }}
+      options={{
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: "Age"
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: "Savings ($)"
+            }
+          }
+        },
+        elements: {
+          point: {
+            hitRadius: 15
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          title: {
+            display: true,
+            text: "Expected Growth of Savings",
+            font: {
+              size: 30
+            }
+          },
+          tooltip: {
+            displayColors: false,
+            callbacks: {
+              title: (context) => "Age " + context[0].label,
+              label: (context) => formatCurrency(context.parsed.y)
+            }
+          }
+        }
+      }}
+    />
   );
 }
 
@@ -80,7 +140,7 @@ function Content() {
         <Form />
       </div>
       <div className="col-md-9">
-        <Chart />
+        <LineChart />
       </div>
     </div>
   );
@@ -175,7 +235,7 @@ function Compounding() {
 			const lastRow = tableData[tableData.length - 1];
       setCompounding(values => ({...values, endingBalance: lastRow.beginningBalance, annualInterest: lastRow.interest}));
 		}
-		setCompounding(values => ({...values, tableData: tableData}));
+		setCompounding(values => ({...values, chartLabels: chartLabels, chartData: chartData, tableData: tableData}));
   }, [compounding.currentAge, compounding.targetRetirementAge, compounding.beginningBalance, compounding.annualSavings, compounding.annualSavingsIncreaseRate, compounding.expectedAnnualReturn]);
 
   return (

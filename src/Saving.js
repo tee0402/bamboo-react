@@ -123,7 +123,6 @@ function Saving() {
     let yearsToRetirement = "Infinite";
 		if (saving.savingsRate > 0) {
 			const savings = saving.savingsRate;
-      console.log(savings);
 			const expenses = (100 - savings) * (saving.expensesInRetirement / 100);
 			let portfolioValue = saving.initialSavings / 100 * savings;
 			const expectedAnnualReturn = saving.expectedAnnualReturn / 100;
