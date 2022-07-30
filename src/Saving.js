@@ -1,25 +1,9 @@
 import { useState, createContext, useContext, useEffect } from "react";
+import Info from "./Info";
 import Tooltip from "./Tooltip";
-import "./Slider.css";
+import FormGroup from "./FormGroup";
 
 const SavingContext = createContext();
-
-function Info() {
-  return (
-    <div className="row">
-      <div className="col-md-1"></div>
-      <div className="col-md-10">
-        <div className="alert alert-warning" style={{fontSize: "18px"}}>
-          Your savings rate is the most important factor in determining how early you can retire, not the rate of return on your investments.
-          This is because increasing your savings rate has a double effect: it increases your retirement savings quicker AND it permanently reduces your expenses, allowing you to retire on less savings.
-          Notice the dramatic decrease in the years to retirement when a low savings rate is increased.
-          Based on the article from <a href="http://www.mrmoneymustache.com/2012/01/13/the-shockingly-simple-math-behind-early-retirement/" className="alert-link">Mr. Money Mustache</a>.
-        </div>
-      </div>
-      <div className="col-md-1"></div>
-    </div>
-  );
-}
 
 function Slider() {
   const [saving, setSaving] = useContext(SavingContext);
@@ -43,53 +27,16 @@ function Slider() {
   );
 }
 
-function FormGroup({id, label, tooltipTitle, type, min}) {
+function Form() {
   const [saving, setSaving] = useContext(SavingContext);
 
   return (
-    <div className="form-group">
-      <label>{label}</label>
-      {tooltipTitle && <Tooltip title={tooltipTitle} />}
-      {type === "checkbox" ? (
-        <div style={{marginBottom: "-10px"}}>
-          <label className="switch">
-            <input
-              id={id}
-              type="checkbox"
-              className="form-control"
-              name={id}
-              value={saving[id]}
-              onChange={e => setSaving(values => ({...values, [e.target.name]: e.target.checked}))}
-            />
-            <span className="slider round"></span>
-          </label>
-        </div>
-      ) : (
-        <div className="input-group">
-          <input
-            id={id}
-            type="number"
-            className="form-control"
-            name={id}
-            value={saving[id]}
-            onChange={e => setSaving(values => ({...values, [e.target.name]: Number(e.target.value)}))}
-            min={min}
-          />
-          {type === "percent" && <span className="input-group-addon">%</span>}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Form() {
-  return (
     <form method="post" action="/">
-      <FormGroup id="initialSavings" label="Initial Savings:" tooltipTitle="As a percentage of current annual savings" type="percent" />
-      <FormGroup id="frontLoadAnnualSavings" label="Front-Load Annual Savings?" tooltipTitle="Put annual savings into accounts at the beginning of the year instead of the end of the year" type="checkbox" />
-      <FormGroup id="expectedAnnualReturn" label="Expected Annual Return:" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" type="percent" />
-      <FormGroup id="withdrawalRate" label="Withdrawal Rate:" type="percent" min={0} />
-      <FormGroup id="expensesInRetirement" label="Expenses in Retirement:" tooltipTitle="As a percentage of current annual expenses" type="percent" min={0} />
+      <FormGroup state={saving} setState={setSaving} id="initialSavings" label="Initial Savings:" tooltipTitle="As a percentage of current annual savings" type="percent" />
+      <FormGroup state={saving} setState={setSaving} id="frontLoadAnnualSavings" label="Front-Load Annual Savings?" tooltipTitle="Put annual savings into accounts at the beginning of the year instead of the end of the year" type="checkbox" />
+      <FormGroup state={saving} setState={setSaving} id="expectedAnnualReturn" label="Expected Annual Return:" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" type="percent" />
+      <FormGroup state={saving} setState={setSaving} id="withdrawalRate" label="Withdrawal Rate:" type="percent" min={0} />
+      <FormGroup state={saving} setState={setSaving} id="expensesInRetirement" label="Expenses in Retirement:" tooltipTitle="As a percentage of current annual expenses" type="percent" min={0} />
     </form>
   );
 }
@@ -146,7 +93,14 @@ function Saving() {
   return (
     <SavingContext.Provider value={[saving, setSaving]}>
       <div id="saving" className="tab-pane fade">
-        <Info />
+        <Info alertStyle="alert-warning" info={
+          <>
+            Your savings rate is the most important factor in determining how early you can retire, not the rate of return on your investments.
+            This is because increasing your savings rate has a double effect: it increases your retirement savings quicker AND it permanently reduces your expenses, allowing you to retire on less savings.
+            Notice the dramatic decrease in the years to retirement when a low savings rate is increased.
+            Based on the article from <a href="http://www.mrmoneymustache.com/2012/01/13/the-shockingly-simple-math-behind-early-retirement/" className="alert-link">Mr. Money Mustache</a>.
+          </>
+        } />
         <div className="row text-center">
           <Slider />
           <Assumptions />

@@ -1,5 +1,6 @@
 import { useState, createContext, useContext, useEffect } from 'react';
-import Tooltip from './Tooltip';
+import Info from './Info';
+import FormGroup from './FormGroup';
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip as ChartTooltip } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import formatCurrency from './formatCurrency';
@@ -8,61 +9,17 @@ Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Cha
 
 const CompoundingContext = createContext();
 
-function Info() {
-  return (
-    <div className="row">
-      <div className="col-md-1"></div>
-      <div className="col-md-10">
-        <div className="alert alert-success" style={{fontSize: "18px"}}>
-          Over the years, the power of compound interest can turn your savings and investments into a sizable nest egg.
-          The length of time that you stay invested is extremely important.
-          Contrary to some beliefs, decreasing that period by a year results in the loss of the potential gains in the last compounding year, not the first.
-          This takes a big chunk out of the balance because the compounding periods at the end are the most valuable.
-          You can test this in the utility below.
-        </div>
-      </div>
-      <div className="col-md-1"></div>
-    </div>
-  );
-}
-
-function FormGroup({id, label, tooltipTitle, type, min, max}) {
+function Form() {
   const [compounding, setCompounding] = useContext(CompoundingContext);
 
   return (
-    <div className="form-group">
-      <label>{label}</label>
-      {tooltipTitle && <Tooltip title={tooltipTitle} />}
-      <div className="input-group">
-        {type === "dollars" && <span className="input-group-addon"><i className="glyphicon glyphicon-usd"></i></span>}
-        <input
-          id={id}
-          type="number"
-          className="form-control"
-          name={id}
-          value={compounding[id]}
-          onChange={e => setCompounding(values => ({...values, [e.target.name]: Number(e.target.value)}))}
-          min={min}
-          max={max}
-        />
-        {type === "years" && <span className="input-group-addon">Years</span>}
-        {type === "percent" && <span className="input-group-addon">%</span>}
-      </div>
-    </div>
-  );
-}
-
-function Form() {
-  const compounding = useContext(CompoundingContext)[0];
-
-  return (
     <form method="post" action="/">
-      <FormGroup id="currentAge" label="Current Age:" type="years" min={0} max={compounding.targetRetirementAge} />
-      <FormGroup id="targetRetirementAge" label="Target Retirement Age:" type="years" min={compounding.currentAge} />
-      <FormGroup id="beginningBalance" label="Beginning Balance:" type="dollars" />
-      <FormGroup id="annualSavings" label="Annual Savings:" type="dollars" />
-      <FormGroup id="annualSavingsIncreaseRate" label="Annual Savings Increase Rate:" type="percent" tooltipTitle="The percentage increase in your savings amount per year" />
-      <FormGroup id="expectedAnnualReturn" label="Expected Annual Return:" type="percent" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" />
+      <FormGroup state={compounding} setState={setCompounding} id="currentAge" label="Current Age:" type="years" min={0} max={compounding.targetRetirementAge} />
+      <FormGroup state={compounding} setState={setCompounding} id="targetRetirementAge" label="Target Retirement Age:" type="years" min={compounding.currentAge} />
+      <FormGroup state={compounding} setState={setCompounding} id="beginningBalance" label="Beginning Balance:" type="dollars" />
+      <FormGroup state={compounding} setState={setCompounding} id="annualSavings" label="Annual Savings:" type="dollars" />
+      <FormGroup state={compounding} setState={setCompounding} id="annualSavingsIncreaseRate" label="Annual Savings Increase Rate:" type="percent" tooltipTitle="The percentage increase in your savings amount per year" />
+      <FormGroup state={compounding} setState={setCompounding} id="expectedAnnualReturn" label="Expected Annual Return:" type="percent" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" />
       <div className="alert alert-success">
         Your ending balance at {compounding.targetRetirementAge} is <strong>{compounding.endingBalance}</strong>.<br />
         The annual interest is <strong>{compounding.annualInterest}</strong>.
@@ -241,7 +198,15 @@ function Compounding() {
   return (
     <CompoundingContext.Provider value={[compounding, setCompounding]}>
       <div id="compounding" className="tab-pane fade in active">
-        <Info />
+        <Info alertStyle="alert-success" info={
+          <>
+            Over the years, the power of compound interest can turn your savings and investments into a sizable nest egg.
+            The length of time that you stay invested is extremely important.
+            Contrary to some beliefs, decreasing that period by a year results in the loss of the potential gains in the last compounding year, not the first.
+            This takes a big chunk out of the balance because the compounding periods at the end are the most valuable.
+            You can test this in the utility below.
+          </>
+        } />
         <Content />
         <br />
         <Calculations />
