@@ -1,4 +1,4 @@
-import Tooltip from './Tooltip';
+import Tooltip from "./Tooltip";
 import "./Slider.css";
 
 function FormGroup({state, setState, id, label, tooltipTitle, type, min, max}) {

@@ -1,9 +1,9 @@
-import { useState, createContext, useContext, useEffect } from 'react';
-import Info from './Info';
-import FormGroup from './FormGroup';
-import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip as ChartTooltip } from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import formatCurrency from './formatCurrency';
+import { useState, createContext, useContext, useEffect } from "react";
+import Info from "./Info";
+import FormGroup from "./FormGroup";
+import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip as ChartTooltip } from "chart.js";
+import { Line } from "react-chartjs-2";
+import formatCurrency from "./formatCurrency";
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip);
 
