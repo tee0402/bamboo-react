@@ -1,30 +1,31 @@
 import { useState, createContext, useContext, useEffect } from "react";
+import { Tab, Row, Col, Form, Alert, Card, Collapse, Table } from "react-bootstrap";
 import Info from "./Info";
 import FormGroup from "./FormGroup";
-import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip as ChartTooltip } from "chart.js";
+import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip } from "chart.js";
 import { Line } from "react-chartjs-2";
 import formatCurrency from "./formatCurrency";
 
-Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip);
+Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip);
 
 const CompoundingContext = createContext();
 
-function Form() {
+function InputForm() {
   const [compounding, setCompounding] = useContext(CompoundingContext);
 
   return (
-    <form method="post" action="/">
+    <Form>
       <FormGroup state={compounding} setState={setCompounding} id="currentAge" label="Current Age:" type="years" min={0} max={compounding.targetRetirementAge} />
       <FormGroup state={compounding} setState={setCompounding} id="targetRetirementAge" label="Target Retirement Age:" type="years" min={compounding.currentAge} />
       <FormGroup state={compounding} setState={setCompounding} id="beginningBalance" label="Beginning Balance:" type="dollars" />
       <FormGroup state={compounding} setState={setCompounding} id="annualSavings" label="Annual Savings:" type="dollars" />
       <FormGroup state={compounding} setState={setCompounding} id="annualSavingsIncreaseRate" label="Annual Savings Increase Rate:" type="percent" tooltipTitle="The percentage increase in your savings amount per year" />
       <FormGroup state={compounding} setState={setCompounding} id="expectedAnnualReturn" label="Expected Annual Return:" type="percent" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" />
-      <div className="alert alert-success">
-        Your ending balance at {compounding.targetRetirementAge} is <strong>{compounding.endingBalance}</strong>.<br />
-        The annual interest is <strong>{compounding.annualInterest}</strong>.
-      </div>
-    </form>
+      <Alert variant="success">
+        <small>Your ending balance at {compounding.targetRetirementAge} is <strong>{compounding.endingBalance}</strong>.<br />
+        The annual interest is <strong>{compounding.annualInterest}</strong>.</small>
+      </Alert>
+    </Form>
   );
 }
 
@@ -92,14 +93,14 @@ function LineChart() {
 
 function Content() {
   return (
-    <div className="row">
-      <div className="col-md-3">
-        <Form />
-      </div>
-      <div className="col-md-9">
+    <Row>
+      <Col md={3}>
+        <InputForm />
+      </Col>
+      <Col md={9}>
         <LineChart />
-      </div>
-    </div>
+      </Col>
+    </Row>
   );
 }
 
@@ -115,43 +116,43 @@ function TableRow({age, beginningBalance, interest, savings, endingBalance}) {
   );
 }
 
-function Calculations() {
+function CalculationsTable() {
   const compounding = useContext(CompoundingContext)[0];
 
   return (
-    <div className="row">
-      <div className="panel panel-success">
-        <div id="toggleDiv" className="panel-heading text-center" data-toggle="collapse" data-target="#table" style={{cursor: "pointer"}}>
-          <h4 id="toggleText" className="panel-title" style={{textDecoration: "underline"}}>Show Calculations</h4>
-        </div>
-        <div id="table" className="panel-collapse collapse">
-          <div className="panel-body">
-            <div className="col-md-3"></div>
-            <div className="col-md-6">
-              <div className="table-responsive">
-                <table className="table table-striped table-bordered table-hover table-condensed">
-                  <thead>
-                    <tr>
-                      <th>Age</th>
-                      <th>Beginning Balance</th>
-                      <th>Interest</th>
-                      <th>Savings</th>
-                      <th>Ending Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {compounding.tableData.map(row => (
-                      <TableRow key={row.age} {...row} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div className="col-md-3"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Table striped bordered hover responsive size="sm">
+      <thead>
+        <tr>
+          <th>Age</th>
+          <th>Beginning Balance</th>
+          <th>Interest</th>
+          <th>Savings</th>
+          <th>Ending Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {compounding.tableData.map(row => (
+          <TableRow key={row.age} {...row} />
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+function Calculations() {
+  const [show, setShow] = useState(false);
+
+  return (
+    <Card bg="light" text="dark">
+      <Card.Header className="bg-success bg-opacity-25 text-center text-decoration-underline" style={{cursor: "pointer"}} onClick={() => setShow(!show)}>{(show ? "Hide" : "Show") + " Calculations"}</Card.Header>
+      <Collapse in={show}>
+        <Card.Body>
+          <Col md={{span: 6, offset: 3}}>
+            <CalculationsTable />
+          </Col>
+        </Card.Body>
+      </Collapse>
+    </Card>
   );
 }
 
@@ -197,8 +198,8 @@ function Compounding() {
 
   return (
     <CompoundingContext.Provider value={[compounding, setCompounding]}>
-      <div id="compounding" className="tab-pane fade in active">
-        <Info alertStyle="alert-success" info={
+      <Tab.Pane eventKey="compounding">
+        <Info variant="success" info={
           <>
             Over the years, the power of compound interest can turn your savings and investments into a sizable nest egg.
             The length of time that you stay invested is extremely important.
@@ -210,7 +211,7 @@ function Compounding() {
         <Content />
         <br />
         <Calculations />
-      </div>
+      </Tab.Pane>
     </CompoundingContext.Provider>
   );
 }

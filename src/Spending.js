@@ -1,18 +1,17 @@
 import { useState, createContext, useContext, useEffect } from "react";
+import { Tab, Alert, Row, Col, Form, Collapse } from "react-bootstrap";
 import Info from "./Info";
 import FormGroup from "./FormGroup";
-import "./Spending.css";
 import Tooltip from "./Tooltip";
-import Collapse from "react-bootstrap/Collapse";
 import formatCurrency from "./formatCurrency";
 
 const SpendingContext = createContext();
 
-function Form() {
+function InputForm() {
   const [spending, setSpending] = useContext(SpendingContext);
 
   return (
-    <form method="post" action="/">
+    <Form>
       <FormGroup state={spending} setState={setSpending} id="age50OrOlder" label="Age 50 or Older?" type="checkbox" />
       <FormGroup state={spending} setState={setSpending} id="annualIncome" label="Annual Income:" type="dollars" min={0} />
       <FormGroup state={spending} setState={setSpending} id="monthlyEssentialExpenses" label="Monthly Essential Expenses:" tooltipTitle="Rent, utilities, food, insurance, minimum payments, etc." type="dollars" min={0} />
@@ -21,19 +20,21 @@ function Form() {
       <FormGroup state={spending} setState={setSpending} id="contributionsThisYear" label="401(k) Contributions This Year:" type="dollars" min={0} />
       <FormGroup state={spending} setState={setSpending} id="company401kMatch" label="Company 401(k) % Match:" tooltipTitle="The percentage of gross income that the employer matches up to. Enter 0 if your company does not match 401(k) contributions" type="percent" min={0} />
       <FormGroup state={spending} setState={setSpending} id="iraContributionsThisYear" label="IRA Contributions This Year:" tooltipTitle="Roth and Traditional combined" type="dollars" min={0} />
-    </form>
+    </Form>
   );
 }
 
-function Step({id, alertStyle, next, tooltipTitle}) {
+function Step({id, variant, next, tooltipTitle}) {
   const spending = useContext(SpendingContext)[0];
 
   return (
-    <Collapse in={spending[id + "Show"]} dimension="width">
-      <div className={"alert " + alertStyle}>
-        {next && <i className="material-icons md-16">subdirectory_arrow_right</i>}
-        {spending[id]}
-        {tooltipTitle && <Tooltip title={tooltipTitle} />}
+    <Collapse in={spending[id + "Show"]}>
+      <div>
+        <Alert variant={variant}>
+          {next && <i className="material-icons md-16 fs-6">subdirectory_arrow_right</i>}
+          {spending[id]}
+          {tooltipTitle && <Tooltip id={id} title={tooltipTitle} />}
+        </Alert>
       </div>
     </Collapse>
   );
@@ -42,27 +43,27 @@ function Step({id, alertStyle, next, tooltipTitle}) {
 function Steps() {
   return (
     <>
-      <Step id="essentialExpensesStep" alertStyle="alert-success" />
-      <Step id="emergencyFundStep" alertStyle="alert-info" next={true} />
-      <Step id="company401kMatchStep" alertStyle="alert-warning" next={true} />
-      <Step id="debtStep" alertStyle="alert-danger" next={true} />
-      <Step id="iraStep" alertStyle="alert-success" next={true} tooltipTitle="Use a Roth IRA if you expect your tax rate to be the same or higher in retirement. Use a Traditional IRA if you expect it to be lower" />
-      <Step id="company401kStep" alertStyle="alert-warning" next={true} />
-      <Step id="cashStep" alertStyle="alert-info" next={true} tooltipTitle="Use a savings account for short-term goals (< 5 years) and an investment account for long-term goals (> 10 years)" />
+      <Step id="essentialExpensesStep" variant="success" />
+      <Step id="emergencyFundStep" variant="info" next={true} />
+      <Step id="company401kMatchStep" variant="warning" next={true} />
+      <Step id="debtStep" variant="danger" next={true} />
+      <Step id="iraStep" variant="success" next={true} tooltipTitle="Use a Roth IRA if you expect your tax rate to be the same or higher in retirement. Use a Traditional IRA if you expect it to be lower" />
+      <Step id="company401kStep" variant="warning" next={true} />
+      <Step id="cashStep" variant="info" next={true} tooltipTitle="Use a savings account for short-term goals (< 5 years) and an investment account for long-term goals (> 10 years)" />
     </>
   );
 }
 
 function Content() {
   return (
-    <div className="row">
-      <div className="col-md-3">
-        <Form />
-      </div>
-      <div className="col-md-9">
+    <Row>
+      <Col md={3}>
+        <InputForm />
+      </Col>
+      <Col md={9}>
         <Steps />
-      </div>
-    </div>
+      </Col>
+    </Row>
   );
 }
 
@@ -137,16 +138,16 @@ function Spending() {
 
   return (
     <SpendingContext.Provider value={[spending, setSpending]}>
-      <div id="spending" className="tab-pane fade">
-        <Info alertStyle="alert-info" info={
+      <Tab.Pane eventKey="spending">
+        <Info variant="info" info={
           <>
             You can spend your income in a way that benefits you in the long run by focusing on the more important priorities first.
             Those are the ones that would give you the maximum benefits for your money, such as building up an ample emergency fund (6 months of expenses), taking advantage of free money such as a company 401(k) match, minimizing interest payments by eliminating high-interest debt, and contributing to tax-deferred retirement accounts before contributing to taxable ones.
-            Based on the flowchart from <a href="https://www.reddit.com/r/personalfinance/comments/4gdlu9/how_to_prioritize_spending_your_money_a_flowchart/" className="alert-link">Reddit</a>.
+            Based on the flowchart from <Alert.Link href="https://www.reddit.com/r/personalfinance/comments/4gdlu9/how_to_prioritize_spending_your_money_a_flowchart/">Reddit</Alert.Link>.
           </>
         } />
         <Content />
-      </div>
+      </Tab.Pane>
     </SpendingContext.Provider>
   );
 }

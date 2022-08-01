@@ -1,98 +1,67 @@
-function LoginButtons() {
+import { useState } from "react";
+import { Row, Button, Modal, Form } from "react-bootstrap";
+
+function LoginButtons({setShowRegister, setShowLogin}) {
   return (
     <>
-      <button type="button" className="btn btn-success pull-right" data-toggle="modal" data-target="#register" style={{marginRight:"30px"}}>Register</button>
-			<button type="button" className="btn btn-success pull-right" data-toggle="modal" data-target="#login" style={{marginRight: "20px"}}>Login</button>
+      <Button variant="success" className="float-end me-3" onClick={() => setShowRegister(true)}>Register</Button>
+			<Button variant="success" className="float-end me-3" onClick={() => setShowLogin(true)}>Login</Button>
     </>
   );
 }
 
 function Title() {
   return (
-    <>
-      <h1 style={{marginLeft: "30px"}}>
-        <a href="." style={{textDecoration: "none"}}>
-          <strong style={{color: "#99bc20"}}>Bamboo</strong>
-          <img src="bamboo.png" alt="Bamboo" height="33px" style={{marginLeft: "5px"}} />
+    <div className="ms-4">
+      <h1>
+        <a className="text-decoration-none" href="." style={{color: "#99bc20"}}>
+          Bamboo
+          <img className="ms-1" src="bamboo.png" alt="Bamboo" height="33px" />
         </a>
       </h1>
-      <h4 style={{marginLeft: "30px"}}>
-        <small>Grow your savings for financial independence or retirement</small>
-      </h4>
-    </>
+			<small>Grow your savings for financial independence or retirement</small>
+    </div>
   );
 }
 
-function Register() {
-  return (
-    <div id="register" className="modal fade" role="dialog">
-				<div className="modal-dialog">
-					<div className="modal-content">
-						<div className="modal-header">
-							<button type="button" className="close" data-dismiss="modal">&times;</button>
-							<h4 className="modal-title">Register</h4>
-						</div>
-						<div className="modal-body">
-							<form id="formRegister" method="post" action="/">
-								<div className="form-group">
-									<label>Email Address:</label>
-									<input id="registerEmailAddress" type="email" className="form-control" name="registerEmailAddress" required />
-								</div>
-								<div className="form-group">
-									<label>Password: (8 characters minimum)</label>
-									<input id="registerPassword" type="password" className="form-control" name="registerPassword" pattern=".{8,}" title="8 characters minimum" required />
-								</div>
-							</form>
-						</div>
-						<div className="modal-footer">
-							<button type="submit" name="register" className="btn btn-success pull-right" form="formRegister">Register</button>
-						</div>
-					</div>
-				</div>
-			</div>
-  );
-}
-
-function Login() {
-  return (
-    <div id="login" className="modal fade" role="dialog">
-				<div className="modal-dialog">
-					<div className="modal-content">
-						<div className="modal-header">
-							<button type="button" className="close" data-dismiss="modal">&times;</button>
-							<h4 className="modal-title">Login</h4>
-						</div>
-						<div className="modal-body">
-							<form id="formLogin" method="post" action="/">
-								<div className="form-group">
-									<label>Email Address:</label>
-									<input id="loginEmailAddress" type="email" className="form-control" name="loginEmailAddress" required />
-								</div>
-								<div className="form-group">
-									<label>Password:</label>
-									<input id="loginPassword" type="password" className="form-control" name="loginPassword" required />
-								</div>
-							</form>
-						</div>
-						<div className="modal-footer">
-							<button type="submit" name="login" className="btn btn-success pull-right" form="formLogin">Login</button>
-						</div>
-					</div>
-				</div>
-			</div>
-  );
+function LoginModal({show, setShow, id, title}) {
+	return (
+		<Modal show={show} onHide={() => setShow(false)}>
+			<Modal.Header closeButton>
+				<Modal.Title>{title}</Modal.Title>
+			</Modal.Header>
+			<Modal.Body>
+				<Form id={id}>
+					<Form.Group className="mb-2">
+						<Form.Label>Email Address:</Form.Label>
+						<Form.Control type="email" required></Form.Control>
+					</Form.Group>
+					<Form.Group className="mb-2">
+						<Form.Label>{"Password:" + (id === "register" ? " (8 characters minimum)" : "")}</Form.Label>
+						<Form.Control type="password" pattern={id === "register" && ".{8,}"} required></Form.Control>
+					</Form.Group>
+				</Form>
+			</Modal.Body>
+			<Modal.Footer>
+				<Button type="submit" variant="success" form={id}>{title}</Button>
+			</Modal.Footer>
+		</Modal>
+	);
 }
 
 function Header() {
+	const [showRegister, setShowRegister] = useState(false);
+	const [showLogin, setShowLogin] = useState(false);
+
   return (
-    <div className="row">
-      <div className="page-header">
-        <LoginButtons />
+    <Row >
+      <div className="p-2 pb-3 border-bottom mt-4 mb-2">
+        <LoginButtons setShowRegister={setShowRegister} setShowLogin={setShowLogin} />
         <Title />
-        <Register />
-        <Login />
+        <LoginModal show={showRegister} setShow={setShowRegister} id="register" title="Register" />
+        <LoginModal show={showLogin} setShow={setShowLogin} id="login" title="Login" />
       </div>
-    </div>
+    </Row>
   );
 }
 

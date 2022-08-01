@@ -1,18 +1,17 @@
+import { Form, InputGroup } from "react-bootstrap";
+import { CurrencyDollar, Percent } from "react-bootstrap-icons";
 import Tooltip from "./Tooltip";
 import "./Slider.css";
 
 function FormGroup({state, setState, id, label, tooltipTitle, type, min, max}) {
   return (
-    <div className="form-group">
-      <label>{label}</label>
-      {tooltipTitle && <Tooltip title={tooltipTitle} />}
+    <Form.Group className="mb-3">
+      <Form.Label className="fw-semibold mb-1">{label}{tooltipTitle && <Tooltip id={id} title={tooltipTitle} />}</Form.Label>
       {type === "checkbox" ? (
-        <div style={{marginBottom: "-10px"}}>
+        <div style={{marginBottom: "-0.5rem"}}>
           <label className="switch">
-            <input
-              id={id}
+            <Form.Control
               type="checkbox"
-              className="form-control"
               name={id}
               value={state[id]}
               onChange={e => setState(values => ({...values, [e.target.name]: e.target.checked}))}
@@ -21,23 +20,21 @@ function FormGroup({state, setState, id, label, tooltipTitle, type, min, max}) {
           </label>
         </div>
       ) : (
-        <div className="input-group">
-          {type === "dollars" && <span className="input-group-addon"><i className="glyphicon glyphicon-usd"></i></span>}
-          <input
-            id={id}
+        <InputGroup>
+          {type === "dollars" && <InputGroup.Text><CurrencyDollar /></InputGroup.Text>}
+          <Form.Control
             type="number"
-            className="form-control"
             name={id}
             value={state[id]}
             onChange={e => setState(values => ({...values, [e.target.name]: Number(e.target.value)}))}
             min={min}
             max={max}
           />
-          {type === "years" && <span className="input-group-addon">Years</span>}
-          {type === "percent" && <span className="input-group-addon">%</span>}
-        </div>
+          {type === "years" && <InputGroup.Text>Years</InputGroup.Text>}
+          {type === "percent" && <InputGroup.Text><Percent /></InputGroup.Text>}
+        </InputGroup>
       )}
-    </div>
+    </Form.Group>
   );
 }
 

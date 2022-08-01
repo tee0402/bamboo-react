@@ -1,14 +1,14 @@
-function Info({alertStyle, info}) {
+import { Row, Col, Alert } from "react-bootstrap";
+
+function Info({variant, info}) {
   return (
-    <div className="row">
-      <div className="col-md-1"></div>
-      <div className="col-md-10">
-        <div className={"alert " + alertStyle} style={{fontSize: "18px"}}>
+    <Row>
+      <Col md={{span: 10, offset: 1}}>
+        <Alert variant={variant} style={{fontSize: "1.125rem"}}>
           {info}
-        </div>
-      </div>
-      <div className="col-md-1"></div>
-    </div>
+        </Alert>
+      </Col>
+    </Row>
   );
 }
 

@@ -1,5 +1,13 @@
-function Tooltip({title}) {
-  return <span> <span className="glyphicon glyphicon-info-sign text-primary" data-toggle="tooltip" title={title}></span></span>;
+import { InfoCircleFill } from  "react-bootstrap-icons";
+import ReactTooltip from "react-tooltip";
+
+function Tooltip({id, title}) {
+  return (
+    <>
+      <InfoCircleFill data-tip data-for={id} className="ms-1 text-primary" />
+      <ReactTooltip id={id}>{title}</ReactTooltip>
+    </>
+  );
 }
 
 export default Tooltip;

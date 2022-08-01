@@ -1,39 +1,48 @@
-import "./Content.css";
+import { Row, Col, Nav, Tab } from "react-bootstrap";
+import "./Pills.css";
 import Compounding from "./Compounding";
 import Spending from "./Spending";
 import Saving from "./Saving";
 
 function Pills() {
   return (
-    <div className="col-md-2">
-			<p style={{color: "#99bc20", fontSize: "1.25em", borderBottom: "1px solid", marginBottom: "5px"}}>Tools</p>
-			<ul className="nav nav-pills nav-stacked">
-				<li id="compoundingPill" className="active"><a data-toggle="pill" href="#compounding">Compounding</a></li>
-				<li id="spendingPill"><a data-toggle="pill" href="#spending">Spending Prioritization</a></li>
-				<li id="savingPill"><a data-toggle="pill" href="#saving">Years to Retirement</a></li>
-			</ul>
-			<br />
-		</div>
+    <Col md={2}>
+			<p className="fs-5 mb-1 border-bottom" style={{color: "#99bc20"}}>Tools</p>
+      <Nav variant="pills" className="flex-column">
+        <Nav.Item>
+          <Nav.Link eventKey="compounding">Compounding</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link eventKey="spending">Spending Prioritization</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link eventKey="saving">Years to Retirement</Nav.Link>
+        </Nav.Item>
+      </Nav>
+		</Col>
   );
 }
 
 function Tabs() {
   return (
-    <div className="col-md-9 tab-content">
-      <Compounding />
-      <Spending />
-      <Saving />
-    </div>
+    <Col md={9}>
+      <Tab.Content>
+        <Compounding />
+        <Spending />
+        <Saving />
+      </Tab.Content>
+    </Col>
   );
 }
 
 function Content() {
   return (
-    <div className="row">
-      <Pills />
-      <Tabs />
-      <div className="col-md-1"></div>
-    </div>
+    <Row>
+      <Tab.Container defaultActiveKey="compounding">
+        <Pills />
+        <Tabs />
+      </Tab.Container>
+    </Row>
   );
 }
 
