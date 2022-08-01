@@ -14,7 +14,7 @@ function Slider() {
       <Form>
         <Form.Group>
           <Form.Label>
-            <h5>Savings Rate<Tooltip id="savingsRate" title="The percentage of annual income that is saved. The current U.S. personal savings rate is 5.4%" /></h5>
+            <h5 className="mb-1">Savings Rate<Tooltip id="savingsRate" title="The percentage of annual income that is saved. The current U.S. personal savings rate is 5.4%" /></h5>
             <h1 style={{color: "#99bc20"}}>{saving.savingsRate + "%"}</h1>
           </Form.Label>
           <Form.Range
@@ -23,8 +23,8 @@ function Slider() {
             onChange={e => setSaving(values => ({...values, [e.target.name]: Number(e.target.value)}))}
           />
           <Form.Label className="mt-3">
-            <h3>Years to Retirement<Tooltip id="yearsToRetirement" title="Assumes no initial savings, 5% annual returns after inflation, 4% withdrawal rate, and that your expenses remain constant in retirement" /></h3>
-            <p style={{color: "#99bc20", fontSize: "6.25rem", lineHeight: "75%"}}>{saving.yearsToRetirement}</p>
+            <h3 className="mb-0">Years to Retirement<Tooltip id="yearsToRetirement" title="Assumes no initial savings, 5% annual returns after inflation, 4% withdrawal rate, and that your expenses remain constant in retirement" /></h3>
+            <p className="lh-1" style={{color: "#99bc20", fontSize: "6.25rem"}}>{saving.yearsToRetirement}</p>
           </Form.Label>
         </Form.Group>
       </Form>
