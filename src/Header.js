@@ -1,23 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Row, Button, Modal, Form, Alert } from "react-bootstrap";
-import { auth } from "./firebase";
+import { auth, db, create } from "./firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { doc } from "firebase/firestore";
 
-function LoginButtons({initialized, setShowRegister, setShowLogin, loggedIn, setLoggedIn, email, setEmail}) {
+function LoginButtons({setShowRegister, setShowLogin, authState, setAuthState}) {
 	function logout() {
 		signOut(auth).then(() => {
-			setLoggedIn(false);
-			setEmail("");
+			setAuthState(values => ({...values, loggedIn: false, email: "", docRef: null}));
 		}).catch(error => {
 			console.log(error);
 		});
 	}
 
   return (
-		initialized ? (
-			loggedIn ? (
+		authState.initialized ? (
+			authState.loggedIn ? (
 				<div className="float-end me-3">
-					<span className="text-success fw-bold me-2">Welcome {email}</span>
+					<span className="text-success fw-bold me-2">Welcome {authState.email}!</span>
 					<Button variant="success" onClick={logout}>Logout</Button>
 				</div>
 			) : (
@@ -44,7 +44,7 @@ function Title() {
   );
 }
 
-function LoginModal({show, setShow, setLoggedIn, setEmail, id, title}) {
+function LoginModal({show, setShow, setAuthState, id, title}) {
 	const [error, setError] = useState("");
 
 	function onHide() {
@@ -58,9 +58,11 @@ function LoginModal({show, setShow, setLoggedIn, setEmail, id, title}) {
 		const email = e.target.email.value;
 		const password = e.target.password.value;
 		if (id === "register") {
-			createUserWithEmailAndPassword(auth, email, password).then(userCredential => {
-				setLoggedIn(true);
-				setEmail(userCredential.user.email);
+			createUserWithEmailAndPassword(auth, email, password).then(async userCredential => {
+				const user = userCredential.user;
+				const docRef = doc(db, "users", user.uid);
+				await create(docRef);
+				setAuthState(values => ({...values, loggedIn: true, email: user.email, docRef: docRef}));
 				setShow(false);
 			}).catch(error => {
 				const errorCode = error.code;
@@ -77,8 +79,8 @@ function LoginModal({show, setShow, setLoggedIn, setEmail, id, title}) {
 			});
 		} else {
 			signInWithEmailAndPassword(auth, email, password).then(userCredential => {
-				setLoggedIn(true);
-				setEmail(userCredential.user.email);
+				const user = userCredential.user;
+				setAuthState(values => ({...values, loggedIn: true, email: user.email, docRef: doc(db, "users", user.uid)}));
 				setShow(false);
 			}).catch(error => {
 				setError("Incorrect email or password. Please try again.");
@@ -111,30 +113,17 @@ function LoginModal({show, setShow, setLoggedIn, setEmail, id, title}) {
 	);
 }
 
-function Header() {
-	const [initialized, setInitialized] = useState(false);
+function Header({authState, setAuthState}) {
 	const [showRegister, setShowRegister] = useState(false);
 	const [showLogin, setShowLogin] = useState(false);
-	const [loggedIn, setLoggedIn] = useState(false);
-	const [email, setEmail] = useState("");
-
-	useEffect(() => {
-		auth.onAuthStateChanged(user => {
-			if (user) {
-				setLoggedIn(true);
-				setEmail(user.email);
-			}
-			setInitialized(true);
-		});
-	}, []);
 
   return (
     <Row >
       <div className="p-2 pb-3 border-bottom mt-4 mb-2">
-        <LoginButtons initialized={initialized} setShowRegister={setShowRegister} setShowLogin={setShowLogin} loggedIn={loggedIn} setLoggedIn={setLoggedIn} email={email} setEmail={setEmail} />
+        <LoginButtons setShowRegister={setShowRegister} setShowLogin={setShowLogin} authState={authState} setAuthState={setAuthState} />
         <Title />
-        <LoginModal show={showRegister} setShow={setShowRegister} setLoggedIn={setLoggedIn} setEmail={setEmail} id="register" title="Register" />
-        <LoginModal show={showLogin} setShow={setShowLogin} setLoggedIn={setLoggedIn} setEmail={setEmail} id="login" title="Login" />
+        <LoginModal show={showRegister} setShow={setShowRegister} setAuthState={setAuthState} id="register" title="Register" />
+        <LoginModal show={showLogin} setShow={setShowLogin} setAuthState={setAuthState} id="login" title="Login" />
       </div>
     </Row>
   );

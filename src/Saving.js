@@ -1,5 +1,6 @@
 import { useState, createContext, useContext, useEffect } from "react";
 import { Tab, Alert, Row, Col, Button, Collapse, Card, Form } from "react-bootstrap";
+import { getDoc, updateDoc } from "firebase/firestore";
 import Info from "./Info";
 import Tooltip from "./Tooltip";
 import FormGroup from "./FormGroup";
@@ -7,7 +8,7 @@ import FormGroup from "./FormGroup";
 const SavingContext = createContext();
 
 function Slider() {
-  const [saving, setSaving] = useContext(SavingContext);
+  const [saving, setSaving,] = useContext(SavingContext);
 
   return (
     <Row className="mb-4">
@@ -33,16 +34,32 @@ function Slider() {
 }
 
 function AssumptionsForm() {
-  const [saving, setSaving] = useContext(SavingContext);
+  const [saving, setSaving, authState] = useContext(SavingContext);
+
+  function onSubmit(e) {
+    e.preventDefault();
+    setSaving(values => ({...values, initializedIfLoggedIn: false}));
+    updateDoc(authState.docRef, {
+      saving_savingsRate: saving.savingsRate,
+      saving_initialSavings: saving.initialSavings,
+      saving_frontLoadAnnualSavings: saving.frontLoadAnnualSavings,
+      saving_expectedAnnualReturn: saving.expectedAnnualReturn,
+      saving_withdrawalRate: saving.withdrawalRate,
+      saving_expensesInRetirement: saving.expensesInRetirement
+    }).then(() => {
+      setSaving(values => ({...values, initializedIfLoggedIn: true}));
+    }).catch(error => console.log(error));
+  }
 
   return (
     <Card className="p-2">
-      <Form>
+      <Form onSubmit={onSubmit}>
         <FormGroup state={saving} setState={setSaving} id="initialSavings" label="Initial Savings:" tooltipTitle="As a percentage of current annual savings" type="percent" />
         <FormGroup state={saving} setState={setSaving} id="frontLoadAnnualSavings" label="Front-Load Annual Savings?" tooltipTitle="Put annual savings into accounts at the beginning of the year instead of the end of the year" type="checkbox" />
         <FormGroup state={saving} setState={setSaving} id="expectedAnnualReturn" label="Expected Annual Return:" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" type="percent" />
         <FormGroup state={saving} setState={setSaving} id="withdrawalRate" label="Withdrawal Rate:" type="percent" min={0} />
         <FormGroup state={saving} setState={setSaving} id="expensesInRetirement" label="Expenses in Retirement:" tooltipTitle="As a percentage of current annual expenses" type="percent" min={0} />
+        {authState.loggedIn && saving.initializedIfLoggedIn && <Button type="submit" variant="warning" className="float-end">Save</Button>}
       </Form>
     </Card>
   );
@@ -65,7 +82,7 @@ function Assumptions() {
   );
 }
 
-function Saving() {
+function Saving({authState}) {
   const [saving, setSaving] = useState({
     savingsRate: 5,
     initialSavings: 0,
@@ -74,6 +91,31 @@ function Saving() {
     withdrawalRate: 4,
     expensesInRetirement: 100
   });
+
+  useEffect(() => {
+    if (authState.loggedIn) {
+      getDoc(authState.docRef).then(docSnap => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setSaving(values => ({
+            ...values,
+            savingsRate: data.saving_savingsRate,
+            initialSavings: data.saving_initialSavings,
+            frontLoadAnnualSavings: data.saving_frontLoadAnnualSavings,
+            expectedAnnualReturn: data.saving_expectedAnnualReturn,
+            withdrawalRate: data.saving_withdrawalRate,
+            expensesInRetirement: data.saving_expensesInRetirement,
+            initializedIfLoggedIn: true
+          }));
+        }
+      }).catch(error => console.log(error));
+    } else {
+      setSaving(values => ({
+        ...values,
+        initializedIfLoggedIn: false
+      }));
+    }
+  }, [authState.loggedIn, authState.docRef]);
 
   useEffect(() => {
     let yearsToRetirement = "Infinite";
@@ -100,7 +142,7 @@ function Saving() {
   }, [saving.savingsRate, saving.initialSavings, saving.frontLoadAnnualSavings, saving.expectedAnnualReturn, saving.withdrawalRate, saving.expensesInRetirement]);
 
   return (
-    <SavingContext.Provider value={[saving, setSaving]}>
+    <SavingContext.Provider value={[saving, setSaving, authState]}>
       <Tab.Pane eventKey="saving">
         <Info variant="warning" info={
           <>

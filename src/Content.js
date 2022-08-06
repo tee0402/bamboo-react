@@ -23,24 +23,24 @@ function Pills() {
   );
 }
 
-function Tabs() {
+function Tabs({authState}) {
   return (
     <Col md={9}>
       <Tab.Content>
-        <Compounding />
-        <Spending />
-        <Saving />
+        <Compounding authState={authState} />
+        <Spending authState={authState} />
+        <Saving authState={authState} />
       </Tab.Content>
     </Col>
   );
 }
 
-function Content() {
+function Content({authState}) {
   return (
     <Row>
       <Tab.Container defaultActiveKey="compounding">
         <Pills />
-        <Tabs />
+        <Tabs authState={authState} />
       </Tab.Container>
     </Row>
   );

@@ -1,5 +1,7 @@
 import { useState, createContext, useContext, useEffect } from "react";
-import { Tab, Row, Col, Form, Alert, Card, Collapse, Table } from "react-bootstrap";
+import { Tab, Row, Col, Form, Button, Alert, Card, Collapse, Table } from "react-bootstrap";
+import { create } from "./firebase";
+import { getDoc, updateDoc } from "firebase/firestore";
 import Info from "./Info";
 import FormGroup from "./FormGroup";
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip } from "chart.js";
@@ -11,16 +13,32 @@ Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Too
 const CompoundingContext = createContext();
 
 function InputForm() {
-  const [compounding, setCompounding] = useContext(CompoundingContext);
+  const [compounding, setCompounding, authState] = useContext(CompoundingContext);
+
+  function onSubmit(e) {
+    e.preventDefault();
+    setCompounding(values => ({...values, initializedIfLoggedIn: false}));
+    updateDoc(authState.docRef, {
+      compounding_currentAge: compounding.currentAge,
+      compounding_targetRetirementAge: compounding.targetRetirementAge,
+      compounding_beginningBalance: compounding.beginningBalance,
+      compounding_annualSavings: compounding.annualSavings,
+      compounding_annualSavingsIncreaseRate: compounding.annualSavingsIncreaseRate,
+      compounding_expectedAnnualReturn: compounding.expectedAnnualReturn
+    }).then(() => {
+      setCompounding(values => ({...values, initializedIfLoggedIn: true}));
+    }).catch(error => console.log(error));
+  }
 
   return (
-    <Form>
+    <Form onSubmit={onSubmit}>
       <FormGroup state={compounding} setState={setCompounding} id="currentAge" label="Current Age:" type="years" min={0} max={compounding.targetRetirementAge} />
       <FormGroup state={compounding} setState={setCompounding} id="targetRetirementAge" label="Target Retirement Age:" type="years" min={compounding.currentAge} />
       <FormGroup state={compounding} setState={setCompounding} id="beginningBalance" label="Beginning Balance:" type="dollars" />
       <FormGroup state={compounding} setState={setCompounding} id="annualSavings" label="Annual Savings:" type="dollars" />
       <FormGroup state={compounding} setState={setCompounding} id="annualSavingsIncreaseRate" label="Annual Savings Increase Rate:" type="percent" tooltipTitle="The percentage increase in your savings amount per year" />
       <FormGroup state={compounding} setState={setCompounding} id="expectedAnnualReturn" label="Expected Annual Return:" type="percent" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" />
+      {authState.loggedIn && compounding.initializedIfLoggedIn && <><Button type="submit" variant="success" className="float-end">Save</Button><br /><br /></>}
       <Alert variant="success">
         <small>Your ending balance at {compounding.targetRetirementAge} is <strong>{compounding.endingBalance}</strong>.<br />
         The annual interest is <strong>{compounding.annualInterest}</strong>.</small>
@@ -156,7 +174,7 @@ function Calculations() {
   );
 }
 
-function Compounding() {
+function Compounding({authState}) {
   const [compounding, setCompounding] = useState({
     currentAge: 25,
     targetRetirementAge: 65,
@@ -166,6 +184,34 @@ function Compounding() {
     expectedAnnualReturn: 6,
     tableData: []
   });
+
+  useEffect(() => {
+    if (authState.loggedIn) {
+      getDoc(authState.docRef).then(async docSnap => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setCompounding(values => ({
+            ...values,
+            currentAge: data.compounding_currentAge,
+            targetRetirementAge: data.compounding_targetRetirementAge,
+            beginningBalance: data.compounding_beginningBalance,
+            annualSavings: data.compounding_annualSavings,
+            annualSavingsIncreaseRate: data.compounding_annualSavingsIncreaseRate,
+            expectedAnnualReturn: data.compounding_expectedAnnualReturn,
+            initializedIfLoggedIn: true
+          }));
+        } else {
+          await create(authState.docRef);
+          window.location.reload();
+        }
+      }).catch(error => console.log(error));
+    } else {
+      setCompounding(values => ({
+        ...values,
+        initializedIfLoggedIn: false
+      }));
+    }
+  }, [authState.loggedIn, authState.docRef]);
 
   useEffect(() => {
     const chartLabels = [];
@@ -197,7 +243,7 @@ function Compounding() {
   }, [compounding.currentAge, compounding.targetRetirementAge, compounding.beginningBalance, compounding.annualSavings, compounding.annualSavingsIncreaseRate, compounding.expectedAnnualReturn]);
 
   return (
-    <CompoundingContext.Provider value={[compounding, setCompounding]}>
+    <CompoundingContext.Provider value={[compounding, setCompounding, authState]}>
       <Tab.Pane eventKey="compounding">
         <Info variant="success" info={
           <>

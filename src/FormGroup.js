@@ -13,7 +13,7 @@ function FormGroup({state, setState, id, label, tooltipTitle, type, min, max}) {
             <Form.Control
               type="checkbox"
               name={id}
-              value={state[id]}
+              checked={state[id]}
               onChange={e => setState(values => ({...values, [e.target.name]: e.target.checked}))}
             />
             <span className="slider round"></span>

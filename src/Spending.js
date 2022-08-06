@@ -1,5 +1,6 @@
 import { useState, createContext, useContext, useEffect } from "react";
-import { Tab, Alert, Row, Col, Form, Collapse } from "react-bootstrap";
+import { Tab, Alert, Row, Col, Form, Button, Collapse } from "react-bootstrap";
+import { getDoc, updateDoc } from "firebase/firestore";
 import Info from "./Info";
 import FormGroup from "./FormGroup";
 import Tooltip from "./Tooltip";
@@ -8,10 +9,27 @@ import formatCurrency from "./formatCurrency";
 const SpendingContext = createContext();
 
 function InputForm() {
-  const [spending, setSpending] = useContext(SpendingContext);
+  const [spending, setSpending, authState] = useContext(SpendingContext);
+
+  function onSubmit(e) {
+    e.preventDefault();
+    setSpending(values => ({...values, initializedIfLoggedIn: false}));
+    updateDoc(authState.docRef, {
+      spending_age50OrOlder: spending.age50OrOlder,
+      spending_annualIncome: spending.annualIncome,
+      spending_monthlyEssentialExpenses: spending.monthlyEssentialExpenses,
+      spending_emergencyFund: spending.emergencyFund,
+      spending_debt: spending.debt,
+      spending_contributionsThisYear: spending.contributionsThisYear,
+      spending_company401kMatch: spending.company401kMatch,
+      spending_iraContributionsThisYear: spending.iraContributionsThisYear
+    }).then(() => {
+      setSpending(values => ({...values, initializedIfLoggedIn: true}));
+    }).catch(error => console.log(error));
+  }
 
   return (
-    <Form>
+    <Form onSubmit={onSubmit}>
       <FormGroup state={spending} setState={setSpending} id="age50OrOlder" label="Age 50 or Older?" type="checkbox" />
       <FormGroup state={spending} setState={setSpending} id="annualIncome" label="Annual Income:" type="dollars" min={0} />
       <FormGroup state={spending} setState={setSpending} id="monthlyEssentialExpenses" label="Monthly Essential Expenses:" tooltipTitle="Rent, utilities, food, insurance, minimum payments, etc." type="dollars" min={0} />
@@ -20,6 +38,7 @@ function InputForm() {
       <FormGroup state={spending} setState={setSpending} id="contributionsThisYear" label="401(k) Contributions This Year:" type="dollars" min={0} />
       <FormGroup state={spending} setState={setSpending} id="company401kMatch" label="Company 401(k) % Match:" tooltipTitle="The percentage of gross income that the employer matches up to. Enter 0 if your company does not match 401(k) contributions" type="percent" min={0} />
       <FormGroup state={spending} setState={setSpending} id="iraContributionsThisYear" label="IRA Contributions This Year:" tooltipTitle="Roth and Traditional combined" type="dollars" min={0} />
+      {authState.loggedIn && spending.initializedIfLoggedIn && <Button type="submit" variant="primary" className="float-end">Save</Button>}
     </Form>
   );
 }
@@ -67,7 +86,7 @@ function Content() {
   );
 }
 
-function Spending() {
+function Spending({authState}) {
   const [spending, setSpending] = useState({
     age50OrOlder: false,
     annualIncome: 50000,
@@ -79,6 +98,33 @@ function Spending() {
     iraContributionsThisYear: 0,
     essentialExpensesStep: <>Pay <strong>essential expenses</strong> and try to <strong>reduce</strong> them.</>
   });
+
+  useEffect(() => {
+    if (authState.loggedIn) {
+      getDoc(authState.docRef).then(docSnap => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setSpending(values => ({
+            ...values,
+            age50OrOlder: data.spending_age50OrOlder,
+            annualIncome: data.spending_annualIncome,
+            monthlyEssentialExpenses: data.spending_monthlyEssentialExpenses,
+            emergencyFund: data.spending_emergencyFund,
+            debt: data.spending_debt,
+            contributionsThisYear: data.spending_contributionsThisYear,
+            company401kMatch: data.spending_company401kMatch,
+            iraContributionsThisYear: data.spending_iraContributionsThisYear,
+            initializedIfLoggedIn: true
+          }));
+        }
+      }).catch(error => console.log(error));
+    } else {
+      setSpending(values => ({
+        ...values,
+        initializedIfLoggedIn: false
+      }));
+    }
+  }, [authState.loggedIn, authState.docRef]);
 
   const company401kContributionsLimitUnder50 = 20500;
   const company401kContributionsLimit50OrOlder = 27000;
@@ -137,7 +183,7 @@ function Spending() {
   }, [spending.age50OrOlder, spending.annualIncome, spending.monthlyEssentialExpenses, spending.emergencyFund, spending.debt, spending.contributionsThisYear, spending.company401kMatch, spending.iraContributionsThisYear]);
 
   return (
-    <SpendingContext.Provider value={[spending, setSpending]}>
+    <SpendingContext.Provider value={[spending, setSpending, authState]}>
       <Tab.Pane eventKey="spending">
         <Info variant="info" info={
           <>
