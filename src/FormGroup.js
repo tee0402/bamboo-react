@@ -3,7 +3,7 @@ import { CurrencyDollar, Percent } from "react-bootstrap-icons";
 import Tooltip from "./Tooltip";
 import "./Slider.css";
 
-function FormGroup({state, setState, id, label, tooltipTitle, type, min, max}) {
+function FormGroup({state, setState, id, label, tooltipTitle, type, min, max, noEnforceMin}) {
   return (
     <Form.Group className="mb-3">
       <Form.Label className="fw-semibold mb-1">{label}{tooltipTitle && <Tooltip id={id} title={tooltipTitle} />}</Form.Label>
@@ -26,7 +26,10 @@ function FormGroup({state, setState, id, label, tooltipTitle, type, min, max}) {
             type="number"
             name={id}
             value={state[id]}
-            onChange={e => setState(values => ({...values, [e.target.name]: Number(e.target.value)}))}
+            onChange={e => {
+              const value = Number(e.target.value);
+              setState(values => ({...values, [e.target.name]: typeof(min) !== "undefined" && typeof(noEnforceMin) === "undefined" && value < min ? min : (typeof(max) !== "undefined" && value > max ? max : value)}));
+            }}
             min={min}
             max={max}
           />

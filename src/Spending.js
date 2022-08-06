@@ -31,12 +31,12 @@ function InputForm({data}) {
   return (
     <Form onSubmit={onSubmit}>
       <FormGroup state={spending} setState={setSpending} id="age50OrOlder" label="Age 50 or Older?" type="checkbox" tooltipTitle={"The 401(k) contribution limit is " + formatSimpleCurrency(data.company401kContributionLimitUnder50) + " (" + formatSimpleCurrency(data.company401kContributionLimit50OrOlder) + " if age 50 or older). The IRA contribution limit is " + formatSimpleCurrency(data.iraContributionLimitUnder50) + " (" + formatSimpleCurrency(data.iraContributionLimit50OrOlder) + " if age 50 or older)"} />
-      <FormGroup state={spending} setState={setSpending} id="annualIncome" label="Annual Income:" type="dollars" min={0} />
-      <FormGroup state={spending} setState={setSpending} id="monthlyEssentialExpenses" label="Monthly Essential Expenses:" tooltipTitle="Rent, utilities, food, insurance, minimum payments, etc." type="dollars" min={0} />
-      <FormGroup state={spending} setState={setSpending} id="emergencyFund" label="Emergency Fund:" type="dollars" min={0} />
-      <FormGroup state={spending} setState={setSpending} id="debt" label="Debt:" type="dollars" min={0} />
+      <FormGroup state={spending} setState={setSpending} id="annualIncome" label="Annual Income:" type="dollars" min={0} max={1000000000000} />
+      <FormGroup state={spending} setState={setSpending} id="monthlyEssentialExpenses" label="Monthly Essential Expenses:" tooltipTitle="Rent, utilities, food, insurance, minimum payments, etc." type="dollars" min={0} max={1000000000000} />
+      <FormGroup state={spending} setState={setSpending} id="emergencyFund" label="Emergency Fund:" type="dollars" min={0} max={1000000000000} />
+      <FormGroup state={spending} setState={setSpending} id="debt" label="Debt:" type="dollars" min={0} max={1000000000000} />
       <FormGroup state={spending} setState={setSpending} id="contributionsThisYear" label="401(k) Contributions This Year:" type="dollars" min={0} max={spending.age50OrOlder ? data.company401kContributionLimit50OrOlder : data.company401kContributionLimitUnder50} />
-      <FormGroup state={spending} setState={setSpending} id="company401kMatch" label="Company 401(k) % Match:" tooltipTitle="The percentage of gross income that the employer matches up to. Enter 0 if your company does not match 401(k) contributions" type="percent" min={0} />
+      <FormGroup state={spending} setState={setSpending} id="company401kMatch" label="Company 401(k) % Match:" tooltipTitle="The percentage of gross income that the employer matches up to. Enter 0 if your company does not match 401(k) contributions" type="percent" min={0} max={100} />
       <FormGroup state={spending} setState={setSpending} id="iraContributionsThisYear" label="IRA Contributions This Year:" tooltipTitle="Roth and Traditional combined" type="dollars" min={0} max={spending.age50OrOlder ? data.iraContributionLimit50OrOlder : data.iraContributionLimitUnder50} />
       {authState.docDataInitialized && spending.updated && <Button type="submit" variant="primary" className="float-end">Save</Button>}
     </Form>

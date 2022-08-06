@@ -32,11 +32,11 @@ function InputForm() {
   return (
     <Form onSubmit={onSubmit}>
       <FormGroup state={compounding} setState={setCompounding} id="currentAge" label="Current Age:" type="years" min={0} max={compounding.targetRetirementAge} />
-      <FormGroup state={compounding} setState={setCompounding} id="targetRetirementAge" label="Target Retirement Age:" type="years" min={compounding.currentAge} />
-      <FormGroup state={compounding} setState={setCompounding} id="beginningBalance" label="Beginning Balance:" type="dollars" />
-      <FormGroup state={compounding} setState={setCompounding} id="annualSavings" label="Annual Savings:" type="dollars" />
-      <FormGroup state={compounding} setState={setCompounding} id="annualSavingsIncreaseRate" label="Annual Savings Increase Rate:" type="percent" tooltipTitle="The percentage increase in your savings amount per year" />
-      <FormGroup state={compounding} setState={setCompounding} id="expectedAnnualReturn" label="Expected Annual Return:" type="percent" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" />
+      <FormGroup state={compounding} setState={setCompounding} id="targetRetirementAge" label="Target Retirement Age:" type="years" min={compounding.currentAge} max={150} noEnforceMin={true} />
+      <FormGroup state={compounding} setState={setCompounding} id="beginningBalance" label="Beginning Balance:" type="dollars" min={-1000000000000} max={1000000000000} />
+      <FormGroup state={compounding} setState={setCompounding} id="annualSavings" label="Annual Savings:" type="dollars" min={-1000000000000} max={1000000000000} />
+      <FormGroup state={compounding} setState={setCompounding} id="annualSavingsIncreaseRate" label="Annual Savings Increase Rate:" type="percent" tooltipTitle="The percentage increase in your savings amount per year" min={-100} max={100} />
+      <FormGroup state={compounding} setState={setCompounding} id="expectedAnnualReturn" label="Expected Annual Return:" type="percent" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" min={-100} max={100} />
       {authState.docDataInitialized && compounding.updated && <><Button type="submit" variant="success" className="float-end">Save</Button><br /><br /></>}
       <Alert variant="success">
         <small>Your ending balance at {compounding.targetRetirementAge} is <strong>{compounding.endingBalance}</strong>.<br />

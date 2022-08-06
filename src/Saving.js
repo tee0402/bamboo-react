@@ -54,11 +54,11 @@ function AssumptionsForm() {
   return (
     <Card className="p-2">
       <Form onSubmit={onSubmit}>
-        <FormGroup state={saving} setState={setSaving} id="initialSavings" label="Initial Savings:" tooltipTitle="As a percentage of current annual savings" type="percent" />
+        <FormGroup state={saving} setState={setSaving} id="initialSavings" label="Initial Savings:" tooltipTitle="As a percentage of current annual savings" type="percent" min={0} max={1000000000000} />
         <FormGroup state={saving} setState={setSaving} id="frontLoadAnnualSavings" label="Front-Load Annual Savings?" tooltipTitle="Put annual savings into accounts at the beginning of the year instead of the end of the year" type="checkbox" />
-        <FormGroup state={saving} setState={setSaving} id="expectedAnnualReturn" label="Expected Annual Return:" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" type="percent" />
-        <FormGroup state={saving} setState={setSaving} id="withdrawalRate" label="Withdrawal Rate:" type="percent" min={0} />
-        <FormGroup state={saving} setState={setSaving} id="expensesInRetirement" label="Expenses in Retirement:" tooltipTitle="As a percentage of current annual expenses" type="percent" min={0} />
+        <FormGroup state={saving} setState={setSaving} id="expectedAnnualReturn" label="Expected Annual Return:" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" type="percent" min={-100} max={100} />
+        <FormGroup state={saving} setState={setSaving} id="withdrawalRate" label="Withdrawal Rate:" type="percent" tooltipTitle="The percentage of your portfolio that you withdraw annually in retirement (will affect the number of years your portfolio (retirement) will last)" min={1} max={10} />
+        <FormGroup state={saving} setState={setSaving} id="expensesInRetirement" label="Expenses in Retirement:" tooltipTitle="As a percentage of current annual expenses" type="percent" min={0} max={1000000000000} />
         {authState.docDataInitialized && saving.updated && <Button type="submit" variant="warning" className="float-end">Save</Button>}
       </Form>
     </Card>
@@ -127,6 +127,10 @@ function Saving({authState, data}) {
 				}
 				withdrawal = portfolioValue * withdrawalRate;
 				yearsToRetirement++;
+        if (yearsToRetirement > 1000) {
+          yearsToRetirement = ">1000";
+          break;
+        }
 			}
 		}
     setSaving(values => ({...values, yearsToRetirement: yearsToRetirement}));
