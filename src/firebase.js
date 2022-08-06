@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore, setDoc } from "firebase/firestore";
-import { getFunctions } from "firebase/functions";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDbnc_dj-1HpzQqLjQf_FkpwoJDxF6siMM",
@@ -16,7 +15,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const functions = getFunctions(app);
 
 function create(docRef) {
   return setDoc(docRef, {
@@ -43,4 +41,4 @@ function create(docRef) {
   });
 }
 
-export { auth, db, functions, create };
+export { auth, db, create };

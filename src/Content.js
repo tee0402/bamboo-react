@@ -1,4 +1,7 @@
+import { useState, useEffect } from "react";
 import { Row, Col, Nav, Tab } from "react-bootstrap";
+import { db } from "./firebase";
+import { doc, getDoc } from "firebase/firestore";
 import "./Pills.css";
 import Compounding from "./Compounding";
 import Spending from "./Spending";
@@ -24,12 +27,20 @@ function Pills() {
 }
 
 function Tabs({authState}) {
+  const [data, setData] = useState(false);
+
+  useEffect(() => {
+    getDoc(doc(db, "data", "data")).then(docSnap => {
+      setData(docSnap.data());
+    }).catch(error => console.log(error));
+  }, []);
+
   return (
     <Col md={9}>
       <Tab.Content>
         <Compounding authState={authState} />
-        <Spending authState={authState} />
-        <Saving authState={authState} />
+        {data && <Spending authState={authState} data={data} />}
+        {data && <Saving authState={authState} data={data} />}
       </Tab.Content>
     </Col>
   );

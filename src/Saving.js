@@ -1,28 +1,21 @@
 import { useState, createContext, useContext, useEffect } from "react";
 import { Tab, Alert, Row, Col, Button, Collapse, Card, Form } from "react-bootstrap";
-import { functions } from "./firebase";
 import { updateDoc } from "firebase/firestore";
-import { httpsCallable } from "firebase/functions";
 import Info from "./Info";
 import Tooltip from "./Tooltip";
 import FormGroup from "./FormGroup";
 
 const SavingContext = createContext();
 
-function Slider() {
+function Slider({data}) {
   const [saving, setSaving,] = useContext(SavingContext);
-  const [personalSavingRate, setPersonalSavingRate] = useState(0);
-
-  useEffect(() => {
-    httpsCallable(functions, "getPersonalSavingRate")().then(result => setPersonalSavingRate(result.data.personalSavingRate));
-  }, []);
 
   return (
     <Row className="mb-4">
       <Form>
         <Form.Group>
           <Form.Label>
-            <h5 className="mb-1">Savings Rate<Tooltip id="savingsRate" title={"The percentage of annual income that is saved. The current U.S. personal savings rate is " + personalSavingRate + "%"} /></h5>
+            <h5 className="mb-1">Savings Rate<Tooltip id="savingsRate" title={"The percentage of annual income that is saved. The current U.S. personal savings rate is " + data.personalSavingRate + "%"} /></h5>
             <h1 style={{color: "#99bc20"}}>{saving.savingsRate + "%"}</h1>
           </Form.Label>
           <Form.Range
@@ -89,7 +82,7 @@ function Assumptions() {
   );
 }
 
-function Saving({authState}) {
+function Saving({authState, data}) {
   const [saving, setSaving] = useState({
     savingsRate: 5,
     initialSavings: 0,
@@ -151,7 +144,7 @@ function Saving({authState}) {
           </>
         } />
         <Row className="text-center">
-          <Slider />
+          <Slider data={data} />
           <Assumptions />
         </Row>
       </Tab.Pane>
