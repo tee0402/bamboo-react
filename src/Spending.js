@@ -1,6 +1,6 @@
 import { useState, createContext, useContext, useEffect } from "react";
 import { Tab, Alert, Row, Col, Form, Button, Collapse } from "react-bootstrap";
-import { getDoc, updateDoc } from "firebase/firestore";
+import { updateDoc } from "firebase/firestore";
 import Info from "./Info";
 import FormGroup from "./FormGroup";
 import Tooltip from "./Tooltip";
@@ -13,7 +13,7 @@ function InputForm() {
 
   function onSubmit(e) {
     e.preventDefault();
-    setSpending(values => ({...values, initializedIfLoggedIn: false}));
+    setSpending(values => ({...values, updated: false}));
     updateDoc(authState.docRef, {
       spending_age50OrOlder: spending.age50OrOlder,
       spending_annualIncome: spending.annualIncome,
@@ -24,7 +24,7 @@ function InputForm() {
       spending_company401kMatch: spending.company401kMatch,
       spending_iraContributionsThisYear: spending.iraContributionsThisYear
     }).then(() => {
-      setSpending(values => ({...values, initializedIfLoggedIn: true}));
+      setSpending(values => ({...values, updated: true}));
     }).catch(error => console.log(error));
   }
 
@@ -38,7 +38,7 @@ function InputForm() {
       <FormGroup state={spending} setState={setSpending} id="contributionsThisYear" label="401(k) Contributions This Year:" type="dollars" min={0} />
       <FormGroup state={spending} setState={setSpending} id="company401kMatch" label="Company 401(k) % Match:" tooltipTitle="The percentage of gross income that the employer matches up to. Enter 0 if your company does not match 401(k) contributions" type="percent" min={0} />
       <FormGroup state={spending} setState={setSpending} id="iraContributionsThisYear" label="IRA Contributions This Year:" tooltipTitle="Roth and Traditional combined" type="dollars" min={0} />
-      {authState.loggedIn && spending.initializedIfLoggedIn && <Button type="submit" variant="primary" className="float-end">Save</Button>}
+      {authState.docDataInitialized && spending.updated && <Button type="submit" variant="primary" className="float-end">Save</Button>}
     </Form>
   );
 }
@@ -100,31 +100,22 @@ function Spending({authState}) {
   });
 
   useEffect(() => {
-    if (authState.loggedIn) {
-      getDoc(authState.docRef).then(docSnap => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setSpending(values => ({
-            ...values,
-            age50OrOlder: data.spending_age50OrOlder,
-            annualIncome: data.spending_annualIncome,
-            monthlyEssentialExpenses: data.spending_monthlyEssentialExpenses,
-            emergencyFund: data.spending_emergencyFund,
-            debt: data.spending_debt,
-            contributionsThisYear: data.spending_contributionsThisYear,
-            company401kMatch: data.spending_company401kMatch,
-            iraContributionsThisYear: data.spending_iraContributionsThisYear,
-            initializedIfLoggedIn: true
-          }));
-        }
-      }).catch(error => console.log(error));
-    } else {
+    if (authState.docDataInitialized) {
+      const docData = authState.docData;
       setSpending(values => ({
         ...values,
-        initializedIfLoggedIn: false
+        age50OrOlder: docData.spending_age50OrOlder,
+        annualIncome: docData.spending_annualIncome,
+        monthlyEssentialExpenses: docData.spending_monthlyEssentialExpenses,
+        emergencyFund: docData.spending_emergencyFund,
+        debt: docData.spending_debt,
+        contributionsThisYear: docData.spending_contributionsThisYear,
+        company401kMatch: docData.spending_company401kMatch,
+        iraContributionsThisYear: docData.spending_iraContributionsThisYear,
+        updated: true
       }));
     }
-  }, [authState.loggedIn, authState.docRef]);
+  }, [authState.docDataInitialized, authState.docData]);
 
   const company401kContributionsLimitUnder50 = 20500;
   const company401kContributionsLimit50OrOlder = 27000;

@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom/client";
 import { useState, useEffect } from "react";
-import { auth, db } from "./firebase";
-import { doc } from "firebase/firestore";
+import { auth, db, create } from "./firebase";
+import { doc, getDoc } from "firebase/firestore";
 import Container from "react-bootstrap/Container";
 import Header from "./Header";
 import Content from "./Content";
@@ -14,7 +14,9 @@ function App() {
     initialized: false,
     loggedIn: false,
     email: "",
-    docRef: null
+    docRef: null,
+    docDataInitialized: false,
+    docData: {}
   });
 
   useEffect(() => {
@@ -25,6 +27,19 @@ function App() {
 			setAuthState(values => ({...values, initialized: true}));
 		});
 	}, []);
+
+  useEffect(() => {
+    if (authState.loggedIn) {
+      getDoc(authState.docRef).then(async docSnap => {
+        if (docSnap.exists()) {
+          setAuthState(values => ({...values, docDataInitialized: true, docData: docSnap.data()}));
+        } else {
+          await create(authState.docRef);
+          getDoc(authState.docRef).then(docSnap => setAuthState(values => ({...values, docDataInitialized: true, docData: docSnap.data()}))).catch(error => console.log(error));
+        }
+      }).catch(error => console.log(error));
+    }
+  }, [authState.loggedIn, authState.docRef]);
 
   return (
     <Container fluid>

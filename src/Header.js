@@ -7,7 +7,7 @@ import { doc } from "firebase/firestore";
 function LoginButtons({setShowRegister, setShowLogin, authState, setAuthState}) {
 	function logout() {
 		signOut(auth).then(() => {
-			setAuthState(values => ({...values, loggedIn: false, email: "", docRef: null}));
+			setAuthState(values => ({...values, loggedIn: false, email: "", docRef: null, docDataInitialized: false, docData: {}}));
 		}).catch(error => {
 			console.log(error);
 		});

@@ -1,7 +1,6 @@
 import { useState, createContext, useContext, useEffect } from "react";
 import { Tab, Row, Col, Form, Button, Alert, Card, Collapse, Table } from "react-bootstrap";
-import { create } from "./firebase";
-import { getDoc, updateDoc } from "firebase/firestore";
+import { updateDoc } from "firebase/firestore";
 import Info from "./Info";
 import FormGroup from "./FormGroup";
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip } from "chart.js";
@@ -17,7 +16,7 @@ function InputForm() {
 
   function onSubmit(e) {
     e.preventDefault();
-    setCompounding(values => ({...values, initializedIfLoggedIn: false}));
+    setCompounding(values => ({...values, updated: false}));
     updateDoc(authState.docRef, {
       compounding_currentAge: compounding.currentAge,
       compounding_targetRetirementAge: compounding.targetRetirementAge,
@@ -26,7 +25,7 @@ function InputForm() {
       compounding_annualSavingsIncreaseRate: compounding.annualSavingsIncreaseRate,
       compounding_expectedAnnualReturn: compounding.expectedAnnualReturn
     }).then(() => {
-      setCompounding(values => ({...values, initializedIfLoggedIn: true}));
+      setCompounding(values => ({...values, updated: true}));
     }).catch(error => console.log(error));
   }
 
@@ -38,7 +37,7 @@ function InputForm() {
       <FormGroup state={compounding} setState={setCompounding} id="annualSavings" label="Annual Savings:" type="dollars" />
       <FormGroup state={compounding} setState={setCompounding} id="annualSavingsIncreaseRate" label="Annual Savings Increase Rate:" type="percent" tooltipTitle="The percentage increase in your savings amount per year" />
       <FormGroup state={compounding} setState={setCompounding} id="expectedAnnualReturn" label="Expected Annual Return:" type="percent" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" />
-      {authState.loggedIn && compounding.initializedIfLoggedIn && <><Button type="submit" variant="success" className="float-end">Save</Button><br /><br /></>}
+      {authState.docDataInitialized && compounding.updated && <><Button type="submit" variant="success" className="float-end">Save</Button><br /><br /></>}
       <Alert variant="success">
         <small>Your ending balance at {compounding.targetRetirementAge} is <strong>{compounding.endingBalance}</strong>.<br />
         The annual interest is <strong>{compounding.annualInterest}</strong>.</small>
@@ -186,32 +185,20 @@ function Compounding({authState}) {
   });
 
   useEffect(() => {
-    if (authState.loggedIn) {
-      getDoc(authState.docRef).then(async docSnap => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setCompounding(values => ({
-            ...values,
-            currentAge: data.compounding_currentAge,
-            targetRetirementAge: data.compounding_targetRetirementAge,
-            beginningBalance: data.compounding_beginningBalance,
-            annualSavings: data.compounding_annualSavings,
-            annualSavingsIncreaseRate: data.compounding_annualSavingsIncreaseRate,
-            expectedAnnualReturn: data.compounding_expectedAnnualReturn,
-            initializedIfLoggedIn: true
-          }));
-        } else {
-          await create(authState.docRef);
-          window.location.reload();
-        }
-      }).catch(error => console.log(error));
-    } else {
+    if (authState.docDataInitialized) {
+      const docData = authState.docData;
       setCompounding(values => ({
         ...values,
-        initializedIfLoggedIn: false
+        currentAge: docData.compounding_currentAge,
+        targetRetirementAge: docData.compounding_targetRetirementAge,
+        beginningBalance: docData.compounding_beginningBalance,
+        annualSavings: docData.compounding_annualSavings,
+        annualSavingsIncreaseRate: docData.compounding_annualSavingsIncreaseRate,
+        expectedAnnualReturn: docData.compounding_expectedAnnualReturn,
+        updated: true
       }));
     }
-  }, [authState.loggedIn, authState.docRef]);
+  }, [authState.docDataInitialized, authState.docData]);
 
   useEffect(() => {
     const chartLabels = [];

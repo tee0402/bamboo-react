@@ -1,6 +1,8 @@
 import { useState, createContext, useContext, useEffect } from "react";
 import { Tab, Alert, Row, Col, Button, Collapse, Card, Form } from "react-bootstrap";
-import { getDoc, updateDoc } from "firebase/firestore";
+import { functions } from "./firebase";
+import { updateDoc } from "firebase/firestore";
+import { httpsCallable } from "firebase/functions";
 import Info from "./Info";
 import Tooltip from "./Tooltip";
 import FormGroup from "./FormGroup";
@@ -9,13 +11,18 @@ const SavingContext = createContext();
 
 function Slider() {
   const [saving, setSaving,] = useContext(SavingContext);
+  const [personalSavingRate, setPersonalSavingRate] = useState(0);
+
+  useEffect(() => {
+    httpsCallable(functions, "getPersonalSavingRate")().then(result => setPersonalSavingRate(result.data.personalSavingRate));
+  }, []);
 
   return (
     <Row className="mb-4">
       <Form>
         <Form.Group>
           <Form.Label>
-            <h5 className="mb-1">Savings Rate<Tooltip id="savingsRate" title="The percentage of annual income that is saved. The current U.S. personal savings rate is 5.4%" /></h5>
+            <h5 className="mb-1">Savings Rate<Tooltip id="savingsRate" title={"The percentage of annual income that is saved. The current U.S. personal savings rate is " + personalSavingRate + "%"} /></h5>
             <h1 style={{color: "#99bc20"}}>{saving.savingsRate + "%"}</h1>
           </Form.Label>
           <Form.Range
@@ -38,7 +45,7 @@ function AssumptionsForm() {
 
   function onSubmit(e) {
     e.preventDefault();
-    setSaving(values => ({...values, initializedIfLoggedIn: false}));
+    setSaving(values => ({...values, updated: false}));
     updateDoc(authState.docRef, {
       saving_savingsRate: saving.savingsRate,
       saving_initialSavings: saving.initialSavings,
@@ -47,7 +54,7 @@ function AssumptionsForm() {
       saving_withdrawalRate: saving.withdrawalRate,
       saving_expensesInRetirement: saving.expensesInRetirement
     }).then(() => {
-      setSaving(values => ({...values, initializedIfLoggedIn: true}));
+      setSaving(values => ({...values, updated: true}));
     }).catch(error => console.log(error));
   }
 
@@ -59,7 +66,7 @@ function AssumptionsForm() {
         <FormGroup state={saving} setState={setSaving} id="expectedAnnualReturn" label="Expected Annual Return:" tooltipTitle="This assumes that you invest all your savings. The annualized inflation-adjusted total returns of the S&P 500 since 1926 is about 7%" type="percent" />
         <FormGroup state={saving} setState={setSaving} id="withdrawalRate" label="Withdrawal Rate:" type="percent" min={0} />
         <FormGroup state={saving} setState={setSaving} id="expensesInRetirement" label="Expenses in Retirement:" tooltipTitle="As a percentage of current annual expenses" type="percent" min={0} />
-        {authState.loggedIn && saving.initializedIfLoggedIn && <Button type="submit" variant="warning" className="float-end">Save</Button>}
+        {authState.docDataInitialized && saving.updated && <Button type="submit" variant="warning" className="float-end">Save</Button>}
       </Form>
     </Card>
   );
@@ -93,29 +100,20 @@ function Saving({authState}) {
   });
 
   useEffect(() => {
-    if (authState.loggedIn) {
-      getDoc(authState.docRef).then(docSnap => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setSaving(values => ({
-            ...values,
-            savingsRate: data.saving_savingsRate,
-            initialSavings: data.saving_initialSavings,
-            frontLoadAnnualSavings: data.saving_frontLoadAnnualSavings,
-            expectedAnnualReturn: data.saving_expectedAnnualReturn,
-            withdrawalRate: data.saving_withdrawalRate,
-            expensesInRetirement: data.saving_expensesInRetirement,
-            initializedIfLoggedIn: true
-          }));
-        }
-      }).catch(error => console.log(error));
-    } else {
+    if (authState.docDataInitialized) {
+      const docData = authState.docData;
       setSaving(values => ({
         ...values,
-        initializedIfLoggedIn: false
+        savingsRate: docData.saving_savingsRate,
+        initialSavings: docData.saving_initialSavings,
+        frontLoadAnnualSavings: docData.saving_frontLoadAnnualSavings,
+        expectedAnnualReturn: docData.saving_expectedAnnualReturn,
+        withdrawalRate: docData.saving_withdrawalRate,
+        expensesInRetirement: docData.saving_expensesInRetirement,
+        updated: true
       }));
     }
-  }, [authState.loggedIn, authState.docRef]);
+  }, [authState.docDataInitialized, authState.docData]);
 
   useEffect(() => {
     let yearsToRetirement = "Infinite";
